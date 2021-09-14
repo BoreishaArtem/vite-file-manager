@@ -8,15 +8,8 @@
           v-model="folderNameModel"
           v-if="showPopup"
       />
-      <ul class="actions-list">
-        <li><button @click="showPopup = true">New Folder</button></li>
-        <li><button>Upload files</button></li>
-        <li><button>Cut</button></li>
-        <li><button @click="selectionEnabled = !selectionEnabled">Select</button></li>
-        <li><button>Copy</button></li>
-        <li><button>Paste</button></li>
-        <li><button @click="deleteFolders">Delete</button></li>
-      </ul>
+
+      <ActionButtons />
 
       <div class="folders">
         <div class="folders-item"
@@ -37,10 +30,16 @@
 </template>
 
 <script setup>
-import CreateFolderPopup from './components/CreateFolderPopup.vue'
-import foldersData from './folders.json'
-import {ref, onBeforeMount, reactive} from 'vue'
-import Tree from './Tree'
+import {
+  ref,
+  onBeforeMount,
+  reactive,
+  Tree,
+  ActionButtons,
+  CreateFolderPopup,
+  foldersData
+} from './imports/app.imports'
+
 const showPopup = ref(false)
 const selectionEnabled = ref(false)
 const selectedFolders = ref([])
@@ -99,7 +98,6 @@ onBeforeMount(() => {
   fillFoldersTree(foldersData)
 })
 
-// const tree = new Tree({ data: [1,2,3], parent: 1, children: 2, type: 'folder', id: 1 })
 </script>
 
 <style>
@@ -133,34 +131,6 @@ body {
   margin-right: 5rem;
   list-style: none;
   padding: 0;
-}
-
-.container .actions-list li button {
-  margin-right: 2rem;
-  cursor: pointer;
-  width: 100%;
-  font-size: 1.1rem;
-  padding: .5rem 1rem;
-  border-radius: 4px;
-  background: linear-gradient(to left, rgba(0,255, 0, .1), rgba(0,0,255, .2));
-  box-shadow: 0 2px 10px rgba(0,0,0,.5);
-  transition: all 2s ease-in-out;
-}
-
-.container .actions-list li input {
-  margin-right: 2rem;
-  cursor: pointer;
-  width: 100%;
-  padding: .5rem 2rem;
-  border-radius: 4px;
-  background: linear-gradient(to left, rgba(0,255, 0, .1), rgba(0,0,255, .2));
-  box-shadow: 0 2px 10px rgba(0,0,0,.5);
-  transition: all 2s ease-in-out;
-}
-
-.container .actions-list li:hover {
-  transition: all 2s ease-in-out;
-  background: linear-gradient(to right, rgba(0,255, 0, .1), rgba(0,0,255, .2));
 }
 
 .list-item {

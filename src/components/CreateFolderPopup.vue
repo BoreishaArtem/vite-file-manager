@@ -1,23 +1,32 @@
 <template>
   <div class="create-folder-popup-wrapper">
-    <div class="create-folder-popup-background" @click="$emit('popupClosed')"></div>
+
+    <div class="create-folder-popup-background"
+         @click="$emit('popupClosed')"></div>
+
     <div class="create-folder-popup">
       <h1>Create new folder</h1>
-      <input type="text" placeholder="name" @input="$emit('update:modelValue', $event.target.value)">
-      <button @keypress.enter="$emit('folderNameApplied')" @click="$emit('folderNameApplied')">Apply</button>
+
+      <input type="text"
+             placeholder="name"
+             @keydown.enter="applyFolderName"
+             @input="updateModelValue">
+
+      <button @click="applyFolderName">Apply</button>
     </div>
   </div>
 
 </template>
 
 <script setup>
-import { defineEmits } from 'vue'
-
-defineEmits([
+const emit = defineEmits([
   'popupClosed',
   'folderNameApplied',
   'update:modelValue'
 ])
+
+const applyFolderName = () => emit('folderNameApplied')
+const updateModelValue = event => emit('update:modelValue', event.target.value)
 </script>
 
 <style scoped>
