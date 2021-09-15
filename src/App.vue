@@ -1,13 +1,13 @@
 <template>
   <div class="main-container" @keypress.esc="selectionEnabled ? selectionEnabled = false : ''">
     <img alt="Vue logo" src="./assets/logo.png" />
+
     <div class="container">
-      <create-folder-popup
-          @popupClosed="showPopup = false"
-          @folderNameApplied="createNewFolder"
-          v-model="folderNameModel"
-          v-if="showPopup"
-      />
+
+      <create-folder-popup @popupClosed="showPopup = false"
+                           @folderNameApplied="createNewFolder"
+                           v-model="folderNameModel"
+                           v-if="showPopup" />
 
       <ActionButtons />
 
@@ -15,7 +15,7 @@
         <div class="folders-item"
              v-for="(folder, idx) in foldersTree"
              :key="Math.random() * idx"
-             @click="selectFolder(folder.root)"
+             @click="selectFiles(folder.root)"
              :class="[
                 folder.root.type === 'folder' ? 'folder' : 'file',
                 selectionEnabled ? 'selection' : ''
@@ -47,12 +47,11 @@ const folderNameModel = ref('')
 const foldersTree = ref([])
 
 const fillFoldersTree = arr => {
-  arr.forEach(item => {
-    foldersTree.value.push(new Tree(item))
-  })
+  const treeInstance = new Tree([], false, arr, 'root', 0)
+  console.log(treeInstance)
 }
 
-const selectFolder = fl => {
+const selectFiles = fl => {
   if (selectionEnabled.value) {
     selectedFolders.value.push(fl.id)
   } else {
@@ -79,7 +78,8 @@ const createNewFolder = () => {
     parent: null,
     children: null,
     type: 'folder',
-    id: foldersTree.value.length + 1 })
+    id: foldersTree.value.length + 1
+  })
   foldersTree.value.push(newFolder)
 }
 
