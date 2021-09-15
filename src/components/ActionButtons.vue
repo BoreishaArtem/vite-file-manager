@@ -1,6 +1,6 @@
 <template>
   <ul class="actions-list">
-    <li v-for="(button, idx) in actionButtons"
+    <li v-for="(button, idx) in buttons"
         :key="Math.random() + idx">
       <button @[button.actionType]="button.cb">{{ button.title }}</button>
     </li>
@@ -8,58 +8,12 @@
 </template>
 
 <script setup>
-import {ref} from "../imports/app.imports";
-const actionButtons = ref([
-  {
-    title: 'New Folder',
-    actionType: 'click',
-    cb: () => {
-      console.log('Create new folder')
-    }
-  },
-  {
-    title: 'Upload files',
-    actionType: 'click',
-    cb: () => {
-      console.log('Files to upload')
-    }
-  },
-  {
-    title: 'Cut',
-    actionType: 'click',
-    cb: () => {
-      console.log('Files to cut')
-    }
-  },
-  {
-    title: 'Select',
-    actionType: 'click',
-    cb: () => {
-      console.log('Files to select')
-    }
-  },
-  {
-    title: 'Copy',
-    actionType: 'click',
-    cb: () => {
-      console.log('Files to copy')
-    }
-  },
-  {
-    title: 'Paste',
-    actionType: 'click',
-    cb: () => {
-      console.log('Files to paste')
-    }
-  },
-  {
-    title: 'Delete',
-    actionType: 'click',
-    cb: () => {
-      console.log('Delete folders')
-    }
-  },
-])
+const props = defineProps({
+  buttons: {
+    type: Array,
+    required: true
+  }
+})
 </script>
 
 <style scoped>

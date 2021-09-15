@@ -9,20 +9,19 @@
                            v-model="folderNameModel"
                            v-if="showPopup" />
 
-      <ActionButtons />
+      <ActionButtons :buttons="actionButtons" />
 
       <div class="folders">
+        <div class="back-to-parent" @dblclick="backToParent">
+          <span>Back</span>
+        </div>
+
         <div class="folders-item"
-             v-for="(folder, idx) in foldersTree"
-             :key="Math.random() * idx"
-             @click="selectFiles(folder.root)"
-             :class="[
-                folder.root.type === 'folder' ? 'folder' : 'file',
-                selectionEnabled ? 'selection' : ''
-             ]"
-        >
-          <div class="folder-inline" v-if="folder.root.type === 'folder'"></div>
-          <span>{{ getFoldersData(folder).data[0] }}</span>
+             v-for="(folder, idx) in currentFolder.children"
+             @dblclick="openFolder(folder)"
+             :key="Math.random() * idx">
+          <div class="folder-inline" v-if="folder.type === 'folder'"></div>
+          <span>{{ folder.data }}</span>
         </div>
       </div>
     </div>
@@ -35,67 +34,97 @@ import {
   onBeforeMount,
   reactive,
   Tree,
+  Node,
   ActionButtons,
   CreateFolderPopup,
-  foldersData
 } from './imports/app.imports'
-
+/* Data */
 const showPopup = ref(false)
 const selectionEnabled = ref(false)
 const selectedFolders = ref([])
 const folderNameModel = ref('')
-const foldersTree = ref([])
+const foldersTree = ref(null)
+const currentFolder = ref(null)
+const actionButtons = ref([
+  {
+    title: 'New Folder',
+    actionType: 'click',
+    cb: openCreateFolderPopup
+  },
+  {
+    title: 'Upload files',
+    actionType: 'click',
+    cb: () => {
+      console.log('Files to upload')
+    }
+  },
+  {
+    title: 'Cut',
+    actionType: 'click',
+    cb: () => {
+      console.log('Files to cut')
+    }
+  },
+  {
+    title: 'Select',
+    actionType: 'click',
+    cb: () => {
+      console.log('Files to select')
+    }
+  },
+  {
+    title: 'Copy',
+    actionType: 'click',
+    cb: () => {
+      console.log('Files to copy')
+    }
+  },
+  {
+    title: 'Paste',
+    actionType: 'click',
+    cb: () => {
+      console.log('Files to paste')
+    }
+  },
+  {
+    title: 'Delete',
+    actionType: 'click',
+    cb: () => {
+      console.log('Delete folders')
+    }
+  },
+])
 
-const fillFoldersTree = arr => {
-  const treeInstance = new Tree([], false, arr, 'root', 0)
-  console.log(treeInstance)
+const fillFoldersTree = () => {
+  const mainNode = new Node('', false, [], 'root', 0)
+  foldersTree.value = new Tree(mainNode)
+  currentFolder.value = foldersTree.value.root
 }
 
-const selectFiles = fl => {
-  if (selectionEnabled.value) {
-    selectedFolders.value.push(fl.id)
-  } else {
-    selectedFolders.value = []
+function openCreateFolderPopup() {
+  showPopup.value = true
+}
+
+const backToParent = () => {
+  if (currentFolder.value.id !== 0) {
+    const { parent, id } = currentFolder.value
+    const { id: rootID } = foldersTree.value.root
   }
 }
 
-const deleteFolders = () => {
-  if (selectionEnabled.value) {
-    let arr = []
-    selectedFolders.value.forEach(fl => {
-      const item = foldersTree.value.find(item => item["root"].id !== fl)
-      if (item) {
-        arr.push(item)
-      }
-    })
-    foldersTree.value = arr
-  }
+const openFolder = fl => {
+  currentFolder.value = fl
 }
 
 const createNewFolder = () => {
+  const parent = currentFolder.value
+  const node = new Node(folderNameModel.value, parent.id, [], 'folder', parent.id + 1)
+  parent.children.push(node)
   showPopup.value = false
-  const newFolder = new Tree({ data: [folderNameModel.value],
-    parent: null,
-    children: null,
-    type: 'folder',
-    id: foldersTree.value.length + 1
-  })
-  foldersTree.value.push(newFolder)
-}
-
-const getFoldersData = fl =>  {
-  const { data, parent, children, type, id } = fl["root"]
-  return {
-    data,
-    parent,
-    children,
-    type,
-    id
-  }
 }
 
 onBeforeMount(() => {
-  fillFoldersTree(foldersData)
+  fillFoldersTree()
 })
 
 </script>
@@ -131,6 +160,18 @@ body {
   margin-right: 5rem;
   list-style: none;
   padding: 0;
+}
+
+.back-to-parent {
+  width: 90px;
+  height: 100px;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.5rem;
+  transition: 0.2s ease-in-out;
+  opacity: 0.9;
 }
 
 .list-item {
