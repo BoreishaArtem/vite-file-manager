@@ -6,6 +6,10 @@
     "build": "vite build",
     "serve": "vite preview"
   },
+  "author": {
+    "name": "Boreisha Artem",
+    "email": "tyma987.com@gmail.com"
+  },
   "dependencies": {
     "vue": "^3.2.6"
   },
