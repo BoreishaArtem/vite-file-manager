@@ -143,6 +143,7 @@ body {
   margin: 0 auto;
   text-align: center;
 }
+
 .container {
   display: flex;
   flex-wrap: wrap;
@@ -189,12 +190,14 @@ body {
   min-height: 10rem;
   border: 1px solid black;
 }
+
 .right {
   height: 100%;
   width: 40%;
   border: 1px solid black;
   min-height: 10rem;
 }
+
 .drop {
   width: 100%;
   height: 20rem;
@@ -210,6 +213,7 @@ body {
   width: 100%;
   min-height: 8rem;
 }
+
 .selection {
   box-shadow: -10px 10px 10px rgba(255, 255, 0, 0.3);
 }
@@ -233,7 +237,6 @@ body {
   left: 50%;
   transform: translateX(-50%);
 }
-
 
 .folder-inline {
   width: 90px;
@@ -264,6 +267,7 @@ body {
   opacity: 1;
   background: rgba(0,0, 255,0.5);
 }
+
 .file::before, .file::after {
   content: "";
   position: absolute;
@@ -271,10 +275,12 @@ body {
   height: 2px;
   background: white;
 }
+
 .file::before {
   top: 40%;
   transform: translateX(-50%);
 }
+
 .file::after {
   top: 60%;
   transform: translateX(-50%);
