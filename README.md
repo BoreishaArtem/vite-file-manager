@@ -1,5 +1,5 @@
 # vite-file-manager
 The vite file manager
 
-#Project setup
+# Project setup
 run npm install, then npm run dev
