@@ -1,18 +1,22 @@
 <template>
   <div class="main-container" @keypress.esc="selectionEnabled ? selectionEnabled = false : ''">
-    <img alt="Vue logo" src="./assets/logo.png" />
+    <img alt="Vue logo" src="./assets/logo.png"/>
 
     <div class="container">
 
       <create-folder-popup @popupClosed="showPopup = false"
                            @folderNameApplied="createNewFolder"
                            v-model="folderNameModel"
-                           v-if="showPopup" />
+                           v-if="showPopup"/>
 
-      <ActionButtons :buttons="actionButtons" />
+      <ActionButtons :buttons="actionButtons"/>
 
       <div class="folders">
-        <div class="back-to-parent" @dblclick="backToParent">
+
+        <h1 style="color: black">{{ currentFolder }}</h1>
+        <div class="back-to-parent folders-item"
+             v-if="currentFolder && currentFolder.parent.rootId >= 0"
+             @dblclick="backToParent">
           <span>Back</span>
         </div>
 
@@ -43,6 +47,7 @@ const showPopup = ref(false)
 const selectionEnabled = ref(false)
 const selectedFolders = ref([])
 const folderNameModel = ref('')
+const parentId = ref(0)
 const foldersTree = ref(null)
 const currentFolder = ref(null)
 const actionButtons = ref([
@@ -96,7 +101,7 @@ const actionButtons = ref([
 ])
 
 const fillFoldersTree = () => {
-  const mainNode = new Node('', false, [], 'root', 0)
+  const mainNode = new Node(null, {id: null, rootId: null}, [], 'root', 0)
   foldersTree.value = new Tree(mainNode)
   currentFolder.value = foldersTree.value.root
 }
@@ -106,19 +111,32 @@ function openCreateFolderPopup() {
 }
 
 const backToParent = () => {
-  if (currentFolder.value.id !== 0) {
-    const { parent, id } = currentFolder.value
-    const { id: rootID } = foldersTree.value.root
+  const { parent } = currentFolder.value
+  const tree = foldersTree.value.root
+  if (tree.id === parent.rootId) {
+    currentFolder.value = tree
+  } else {
+    tree.children.forEach((child) => recursiveSearch(child.children, parent))
   }
+}
+
+const recursiveSearch = (children, parent) => {
+  // TODO refactor recursive search
+  children.forEach(child => {
+    child.parent.rootId === parent.rootId ? currentFolder.value = child : recursiveSearch(child, child.parent)
+  })
 }
 
 const openFolder = fl => {
   currentFolder.value = fl
+  parentId.value += 1
 }
 
 const createNewFolder = () => {
   const parent = currentFolder.value
-  const node = new Node(folderNameModel.value, parent.id, [], 'folder', parent.id + 1)
+  const childrenID = parent.children.length ? parent.children.length : 0
+  const parentPosition = {id: childrenID, rootId: parentId.value > 0 ? parentId.value : 0}
+  const node = new Node(folderNameModel.value, parentPosition, [], 'folder', childrenID)
   parent.children.push(node)
   showPopup.value = false
 }
@@ -143,6 +161,7 @@ body {
   margin: 0 auto;
   text-align: center;
 }
+
 .container {
   display: flex;
   flex-wrap: wrap;
@@ -167,6 +186,7 @@ body {
   height: 100px;
   background: black;
   display: flex;
+  color: white;
   justify-content: center;
   align-items: center;
   border-radius: 0.5rem;
@@ -189,12 +209,14 @@ body {
   min-height: 10rem;
   border: 1px solid black;
 }
+
 .right {
   height: 100%;
   width: 40%;
   border: 1px solid black;
   min-height: 10rem;
 }
+
 .drop {
   width: 100%;
   height: 20rem;
@@ -210,6 +232,7 @@ body {
   width: 100%;
   min-height: 8rem;
 }
+
 .selection {
   box-shadow: -10px 10px 10px rgba(255, 255, 0, 0.3);
 }
@@ -225,6 +248,7 @@ body {
   color: black;
   margin-right: 5rem;
 }
+
 .folders-item > span {
   display: inline-block;
   position: absolute;
@@ -238,7 +262,7 @@ body {
 .folder-inline {
   width: 90px;
   height: 100px;
-  background: linear-gradient(to bottom left, rgba(255,255,0,0.2), rgba(255,0, 255,0.5));
+  background: linear-gradient(to bottom left, rgba(255, 255, 0, 0.2), rgba(255, 0, 255, 0.5));
   border-radius: 0.5rem;
   clip-path: polygon(0% 0%, 90% 0, 90% 70%, 100% 70%, 100% 100%, 50% 100%, 0 100%);
   transition: 0.2s ease-in-out;
@@ -248,7 +272,7 @@ body {
 .file {
   width: 90px;
   height: 100px;
-  background: linear-gradient(to bottom left, rgba(0,0,255,0.2), rgba(0,0, 255,0.5));
+  background: linear-gradient(to bottom left, rgba(0, 0, 255, 0.2), rgba(0, 0, 255, 0.5));
   border-radius: 0.5rem;
   transition: 0.2s ease-in-out;
   opacity: 0.9;
@@ -257,13 +281,14 @@ body {
 
 .folder-inline:hover {
   opacity: 1;
-  background: rgba(255,0, 255,0.5);
+  background: rgba(255, 0, 255, 0.5);
 }
 
 .file:hover {
   opacity: 1;
-  background: rgba(0,0, 255,0.5);
+  background: rgba(0, 0, 255, 0.5);
 }
+
 .file::before, .file::after {
   content: "";
   position: absolute;
@@ -271,10 +296,12 @@ body {
   height: 2px;
   background: white;
 }
+
 .file::before {
   top: 40%;
   transform: translateX(-50%);
 }
+
 .file::after {
   top: 60%;
   transform: translateX(-50%);

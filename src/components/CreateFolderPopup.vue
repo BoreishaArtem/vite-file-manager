@@ -8,6 +8,7 @@
       <h1>Create new folder</h1>
 
       <input type="text"
+             ref="input"
              placeholder="name"
              @keydown.enter="applyFolderName"
              @input="updateModelValue">
@@ -19,6 +20,15 @@
 </template>
 
 <script setup>
+import { ref, onBeforeMount, nextTick } from 'vue'
+const input = ref(null)
+
+onBeforeMount(() => {
+  nextTick(() => {
+    input.value.focus()
+  })
+})
+
 const emit = defineEmits([
   'popupClosed',
   'folderNameApplied',
