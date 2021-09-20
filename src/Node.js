@@ -1,9 +1,9 @@
 export default class Node {
-    constructor(data, parent, children, type, id) {
-        this.data = data
-        this.parent = parent
+    constructor(path, name, children, id, type) {
+        this.path = path
+        this.name = name
         this.children = children
-        this.type = type
         this.id = id
+        this.type = type
     }
 }

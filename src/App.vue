@@ -11,11 +11,12 @@
 
       <ActionButtons :buttons="actionButtons"/>
 
+      <h1>{{ currentFolder.path }}</h1>
+
       <div class="folders">
 
-        <h1 style="color: black">{{ currentFolder }}</h1>
         <div class="back-to-parent folders-item"
-             v-if="currentFolder && currentFolder.parent.rootId >= 0"
+             v-if="currentFolder.path !== ''"
              @dblclick="backToParent">
           <span>Back</span>
         </div>
@@ -25,7 +26,7 @@
              @dblclick="openFolder(folder)"
              :key="Math.random() * idx">
           <div class="folder-inline" v-if="folder.type === 'folder'"></div>
-          <span>{{ folder.data }}</span>
+          <span>{{ folder.name }}</span>
         </div>
       </div>
     </div>
@@ -35,21 +36,18 @@
 <script setup>
 import {
   ref,
-  onBeforeMount,
   reactive,
-  Tree,
-  Node,
   ActionButtons,
+  onBeforeMount,
+  Node,
+  Tree,
   CreateFolderPopup,
 } from './imports/app.imports'
+
 /* Data */
 const showPopup = ref(false)
 const selectionEnabled = ref(false)
-const selectedFolders = ref([])
 const folderNameModel = ref('')
-const parentId = ref(0)
-const foldersTree = ref(null)
-const currentFolder = ref(null)
 const actionButtons = ref([
   {
     title: 'New Folder',
@@ -99,52 +97,52 @@ const actionButtons = ref([
     }
   },
 ])
+const parentId = ref(0)
+const foldersTree = ref(null)
+const currentFolder = ref(null)
 
 const fillFoldersTree = () => {
-  const mainNode = new Node(null, {id: null, rootId: null}, [], 'root', 0)
+  const mainNode = new Node('', '', [], 0, 'folder')
   foldersTree.value = new Tree(mainNode)
   currentFolder.value = foldersTree.value.root
 }
+
+const selectedFolders = ref([])
 
 function openCreateFolderPopup() {
   showPopup.value = true
 }
 
 const backToParent = () => {
-  const { parent } = currentFolder.value
-  const tree = foldersTree.value.root
-  if (tree.id === parent.rootId) {
-    currentFolder.value = tree
-  } else {
-    tree.children.forEach((child) => recursiveSearch(child.children, parent))
-  }
+  const currentPath = currentFolder.value.path
+  const name = currentFolder.value.name + 1
+  const path = currentPath.substring(0, currentPath.length - name.length)
+  recursiveSearch(foldersTree.value.root, path)
 }
 
-const recursiveSearch = (children, parent) => {
-  // TODO refactor recursive search
-  children.forEach(child => {
-    child.parent.rootId === parent.rootId ? currentFolder.value = child : recursiveSearch(child, child.parent)
+const recursiveSearch = (root, path) => {
+  if (root.path === path) {
+    currentFolder.value = root
+  }
+  root.children.forEach(child => {
+    child.path === path ? currentFolder.value = child : recursiveSearch(child, path)
   })
 }
 
 const openFolder = fl => {
   currentFolder.value = fl
-  parentId.value += 1
 }
 
 const createNewFolder = () => {
-  const parent = currentFolder.value
-  const childrenID = parent.children.length ? parent.children.length : 0
-  const parentPosition = {id: childrenID, rootId: parentId.value > 0 ? parentId.value : 0}
-  const node = new Node(folderNameModel.value, parentPosition, [], 'folder', childrenID)
-  parent.children.push(node)
+  const folderPath = `${currentFolder.value.path}/${folderNameModel.value}`
+  const newFolder = new Node(folderPath, folderNameModel.value, [], currentFolder.value.children.length, 'folder')
+  currentFolder.value.children.push(newFolder)
   showPopup.value = false
 }
 
 onBeforeMount(() => {
   fillFoldersTree()
 })
-
 </script>
 
 <style>

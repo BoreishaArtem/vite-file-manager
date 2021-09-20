@@ -2,8 +2,8 @@ import Node from "./Node";
 
 export default class Tree  {
     constructor(node) {
-        const { data, parent, children, type, id } = node
-        this.root = new Node(data, parent, children, type, id)
+        const { path, name, children, id, type } = node
+        this.root = new Node(path, name, children, id, type)
     }
 
     traverseDF(cb) {
