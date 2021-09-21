@@ -1,8 +1,13 @@
 <template>
-  <div class="main-container" @keypress.esc="selectionEnabled ? selectionEnabled = false : ''">
+  <div class="main-container" @keydown.esc="keyEvent" tabindex="0">
     <img alt="Vue logo" src="./assets/logo.png"/>
 
     <div class="container">
+
+      <delete-prompt :folderName="folderToDelete"
+                     @promptSelected="deleteFolder"
+                     v-if="showDeletePrompt"
+                     @close="closeDeletionPrompt" />
 
       <create-folder-popup @popupClosed="showPopup = false"
                            @folderNameApplied="createNewFolder"
@@ -24,8 +29,12 @@
         <div class="folders-item"
              v-for="(folder, idx) in currentFolder.children"
              @dblclick="openFolder(folder)"
+             @mousedown="deleteFolders"
+             @mouseup="deletionDisabled"
              :key="Math.random() * idx">
-          <div class="folder-inline" v-if="folder.type === 'folder'"></div>
+          <div class="folder-inline" v-if="folder.type === 'folder'">
+            <span class="folder-inline-delete-btn" v-if="foldersDeletionState" @click="showFolderDeletePrompt(folder)"></span>
+          </div>
           <span>{{ folder.name }}</span>
         </div>
       </div>
@@ -42,12 +51,18 @@ import {
   Node,
   Tree,
   CreateFolderPopup,
+  DeletePrompt
 } from './imports/app.imports'
 
 /* Data */
 const showPopup = ref(false)
 const selectionEnabled = ref(false)
+const showDeletePrompt = ref(false)
 const folderNameModel = ref('')
+const foldersDeletionState = ref(false)
+let deleteFnLink = null
+const foldersTree = ref(null)
+const currentFolder = ref(null)
 const actionButtons = ref([
   {
     title: 'New Folder',
@@ -97,9 +112,8 @@ const actionButtons = ref([
     }
   },
 ])
-const parentId = ref(0)
-const foldersTree = ref(null)
-const currentFolder = ref(null)
+const selectedFolders = ref([])
+const folderToDelete = ref(null)
 
 const fillFoldersTree = () => {
   const mainNode = new Node('', '', [], 0, 'folder')
@@ -107,10 +121,41 @@ const fillFoldersTree = () => {
   currentFolder.value = foldersTree.value.root
 }
 
-const selectedFolders = ref([])
-
 function openCreateFolderPopup() {
   showPopup.value = true
+}
+const deleteFolders = () => {
+  const timeoutMs = 700
+    deleteFnLink = setTimeout(() => {
+      foldersDeletionState.value = !!!foldersDeletionState.value
+    }, timeoutMs)
+}
+
+const deletionDisabled = () => {
+  clearTimeout(deleteFnLink)
+}
+
+const keyEvent = event => {
+  if (foldersDeletionState.value) {
+    foldersDeletionState.value = false
+  }
+}
+
+const closeDeletionPrompt = () => {
+  showDeletePrompt.value = false
+  foldersDeletionState.value = false
+}
+
+const deleteFolder = val => {
+  if (val) {
+    console.log(currentFolder.value, folderToDelete.value)
+    currentFolder.value.children = currentFolder.value.children.filter(child => {
+      if (child.name !== folderToDelete.value) {
+        return child
+      }
+    })
+  }
+  closeDeletionPrompt()
 }
 
 const backToParent = () => {
@@ -127,6 +172,11 @@ const recursiveSearch = (root, path) => {
   root.children.forEach(child => {
     child.path === path ? currentFolder.value = child : recursiveSearch(child, path)
   })
+}
+
+const showFolderDeletePrompt = fl => {
+  folderToDelete.value = fl.name
+  showDeletePrompt.value = true
 }
 
 const openFolder = fl => {
@@ -156,6 +206,7 @@ body {
 .main-container {
   width: 100%;
   max-width: 1200px;
+  outline: none;
   margin: 0 auto;
   text-align: center;
 }
@@ -258,6 +309,7 @@ body {
 
 
 .folder-inline {
+  position: relative;
   width: 90px;
   height: 100px;
   background: linear-gradient(to bottom left, rgba(255, 255, 0, 0.2), rgba(255, 0, 255, 0.5));
@@ -265,6 +317,32 @@ body {
   clip-path: polygon(0% 0%, 90% 0, 90% 70%, 100% 70%, 100% 100%, 50% 100%, 0 100%);
   transition: 0.2s ease-in-out;
   opacity: 0.9;
+}
+
+.folder-inline-delete-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all .25s ease-in-out;
+  background: linear-gradient(red, purple);
+}
+
+.folder-inline-delete-btn:hover {
+  background: red;
+}
+
+.folder-inline-delete-btn::after {
+  content: 'x';
+  position: absolute;
+  color: white;
+  left: 50%;
+  font-size: .6rem;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
 }
 
 .file {
