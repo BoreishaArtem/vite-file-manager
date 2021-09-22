@@ -99,6 +99,7 @@ const actionButtons = ref([
     cb: () => {
       if (currentFolder.value.children.length > 0) {
         selectionEnabled.value = !selectionEnabled.value
+        if (!selectionEnabled.value) selectedFolders.value = []
       }
     }
   },
@@ -108,6 +109,7 @@ const actionButtons = ref([
     cb: () => {
       if (selectedFolders.value.length > 0) {
         valuesCopiedStatus.value = true
+        copiedFoldersArray.value = selectedFolders.value
       }
     }
   },
@@ -116,15 +118,16 @@ const actionButtons = ref([
     actionType: 'click',
     cb: () => {
       if (selectedFolders.value.length > 0 && valuesCopiedStatus.value) {
-        const valueToCopy = currentFolder.value.children.filter(fl => {
-          return selectedFolders.value.find(item => item.name !== fl.name)
+        const uniqueValues = copiedFoldersArray.value.filter(fl => {
+          return !currentFolder.value.children.includes(fl)
         })
-        console.log(valueToCopy)
+        if (uniqueValues) currentFolder.value.children.push(uniqueValues)
       }
     }
   },
 ])
 const selectedFolders = ref([])
+const copiedFoldersArray = ref([])
 const folderToDelete = ref(null)
 const valuesCopiedStatus = ref(null)
 
