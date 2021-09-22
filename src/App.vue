@@ -35,7 +35,7 @@
              :key="Math.random() * idx">
           <div class="folder-inline"
                @click="selectFolders(folder, idx)"
-               :class="{ 'folder-selected-item': selectionEnabled && selectedFolders.find(i => i === idx) }"
+               :class="{ 'folder-selected-item': selectionEnabled && findSelectedItem(idx) }"
                v-if="folder.type === 'folder'">
 
             <span class="folder-inline-delete-btn"
@@ -46,7 +46,7 @@
 
           <span>{{ folder.name }}</span>
 
-        </div>
+        </div>selectedFolders
       </div>
     </div>
   </div>
@@ -97,31 +97,46 @@ const actionButtons = ref([
     title: 'Select',
     actionType: 'click',
     cb: () => {
-      selectionEnabled.value = !selectionEnabled.value
+      if (currentFolder.value.children.length > 0) {
+        selectionEnabled.value = !selectionEnabled.value
+      }
     }
   },
   {
     title: 'Copy',
     actionType: 'click',
     cb: () => {
-      console.log('Files to copy')
+      if (selectedFolders.value.length > 0) {
+        valuesCopiedStatus.value = true
+      }
     }
   },
   {
     title: 'Paste',
     actionType: 'click',
     cb: () => {
-      console.log('Files to paste')
+      if (selectedFolders.value.length > 0 && valuesCopiedStatus.value) {
+        const valueToCopy = currentFolder.value.children.filter(fl => {
+          return selectedFolders.value.find(item => item.name !== fl.name)
+        })
+        console.log(valueToCopy)
+      }
     }
   },
 ])
 const selectedFolders = ref([])
 const folderToDelete = ref(null)
+const valuesCopiedStatus = ref(null)
 
 const fillFoldersTree = () => {
   const mainNode = new Node('', '', [], 0, 'folder')
   foldersTree.value = new Tree(mainNode)
   currentFolder.value = foldersTree.value.root
+}
+
+const findSelectedItem = (idx) => {
+  const updatedIdx = idx + 1
+  return !!selectedFolders.value.find(i => i.id === updatedIdx)
 }
 
 function openCreateFolderPopup() {
@@ -139,8 +154,9 @@ const deletionDisabled = () => {
 }
 
 const keyEvent = event => {
-  if (foldersDeletionState.value) {
+  if (foldersDeletionState.value || selectionEnabled.value) {
     foldersDeletionState.value = false
+    selectionEnabled.value = false
   }
 }
 
@@ -168,11 +184,14 @@ const backToParent = () => {
 }
 
 const selectFolders = (fl, idx) => {
-  const findFolder = selectedFolders.value.find(i => i === idx)
+  const currentIdx = idx + 1
+  const findFolder = selectedFolders.value.find(i => i.id === currentIdx)
+
   if (!findFolder) {
-    selectedFolders.value.push(idx)
+    selectedFolders.value.push(fl)
+  } else {
+    selectedFolders.value = selectedFolders.value.filter(i => i.id !== findFolder.id)
   }
-  selectedFolders.value.filter(f => f !== idx)
 }
 
 const recursiveSearch = (root, path) => {
@@ -194,8 +213,9 @@ const openFolder = fl => {
 }
 
 const createNewFolder = () => {
+  const childrenId = currentFolder.value.children.length + 1
   const folderPath = `${currentFolder.value.path}/${folderNameModel.value}`
-  const newFolder = new Node(folderPath, folderNameModel.value, [], currentFolder.value.children.length, 'folder')
+  const newFolder = new Node(folderPath, folderNameModel.value, [], childrenId, 'folder')
   currentFolder.value.children.push(newFolder)
   showPopup.value = false
 }
