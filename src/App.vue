@@ -31,11 +31,21 @@
              @dblclick="openFolder(folder)"
              @mousedown="deleteFolders"
              @mouseup="deletionDisabled"
+             :class="{ 'folder-selection': selectionEnabled }"
              :key="Math.random() * idx">
-          <div class="folder-inline" v-if="folder.type === 'folder'">
-            <span class="folder-inline-delete-btn" v-if="foldersDeletionState" @click="showFolderDeletePrompt(folder)"></span>
+          <div class="folder-inline"
+               @click="selectFolders(folder, idx)"
+               :class="{ 'folder-selected-item': selectionEnabled && selectedFolders.find(i => i === idx) }"
+               v-if="folder.type === 'folder'">
+
+            <span class="folder-inline-delete-btn"
+                  v-if="foldersDeletionState"
+                  @click="showFolderDeletePrompt(folder)"></span>
+
           </div>
+
           <span>{{ folder.name }}</span>
+
         </div>
       </div>
     </div>
@@ -55,12 +65,12 @@ import {
 } from './imports/app.imports'
 
 /* Data */
+let deleteFnLink = null
 const showPopup = ref(false)
 const selectionEnabled = ref(false)
 const showDeletePrompt = ref(false)
 const folderNameModel = ref('')
 const foldersDeletionState = ref(false)
-let deleteFnLink = null
 const foldersTree = ref(null)
 const currentFolder = ref(null)
 const actionButtons = ref([
@@ -87,7 +97,7 @@ const actionButtons = ref([
     title: 'Select',
     actionType: 'click',
     cb: () => {
-      console.log('Files to select')
+      selectionEnabled.value = !selectionEnabled.value
     }
   },
   {
@@ -102,13 +112,6 @@ const actionButtons = ref([
     actionType: 'click',
     cb: () => {
       console.log('Files to paste')
-    }
-  },
-  {
-    title: 'Delete',
-    actionType: 'click',
-    cb: () => {
-      console.log('Delete folders')
     }
   },
 ])
@@ -148,7 +151,6 @@ const closeDeletionPrompt = () => {
 
 const deleteFolder = val => {
   if (val) {
-    console.log(currentFolder.value, folderToDelete.value)
     currentFolder.value.children = currentFolder.value.children.filter(child => {
       if (child.name !== folderToDelete.value) {
         return child
@@ -163,6 +165,14 @@ const backToParent = () => {
   const name = currentFolder.value.name + 1
   const path = currentPath.substring(0, currentPath.length - name.length)
   recursiveSearch(foldersTree.value.root, path)
+}
+
+const selectFolders = (fl, idx) => {
+  const findFolder = selectedFolders.value.find(i => i === idx)
+  if (!findFolder) {
+    selectedFolders.value.push(idx)
+  }
+  selectedFolders.value.filter(f => f !== idx)
 }
 
 const recursiveSearch = (root, path) => {
@@ -290,11 +300,21 @@ body {
   box-shadow: -10px 10px 10px rgba(0, 0, 255, 0.3);
 }
 
+.folder-selection {
+  box-shadow: 0 0 10px rgba(0,0,0,.4);
+}
+
+.folder-selected-item {
+  box-shadow: 0 0 20px rgba(0,0,255,.8);
+}
+
+
 .folders-item {
   position: relative;
   margin-top: 5rem;
   transition: all .3s ease-in-out;
   color: black;
+  border-radius: 10px;
   margin-right: 5rem;
 }
 
@@ -314,7 +334,6 @@ body {
   height: 100px;
   background: linear-gradient(to bottom left, rgba(255, 255, 0, 0.2), rgba(255, 0, 255, 0.5));
   border-radius: 0.5rem;
-  clip-path: polygon(0% 0%, 90% 0, 90% 70%, 100% 70%, 100% 100%, 50% 100%, 0 100%);
   transition: 0.2s ease-in-out;
   opacity: 0.9;
 }
