@@ -53,26 +53,40 @@
 </template>
 
 <script setup>
+
+/* @TODO
+* Drag & drop;
+* Upload files;
+* Copy & paste;
+* New type of files
+* Image downloads
+*  */
+
 import {
   ref,
-  reactive,
-  ActionButtons,
-  onBeforeMount,
   Node,
   Tree,
+  reactive,
+  onBeforeMount,
+  DeletePrompt,
+  ActionButtons,
   CreateFolderPopup,
-  DeletePrompt
 } from './imports/app.imports'
 
 /* Data */
-let deleteFnLink = null
+const folderNameModel = ref('')
+const deleteFnLink = ref(null)
 const showPopup = ref(false)
 const selectionEnabled = ref(false)
 const showDeletePrompt = ref(false)
-const folderNameModel = ref('')
 const foldersDeletionState = ref(false)
 const foldersTree = ref(null)
 const currentFolder = ref(null)
+const folderToDelete = ref(null)
+const valuesCopiedStatus = ref(null)
+
+const selectedFolders = ref([])
+const copiedFoldersArray = ref([])
 const actionButtons = ref([
   {
     title: 'New Folder',
@@ -126,12 +140,8 @@ const actionButtons = ref([
     }
   },
 ])
-const selectedFolders = ref([])
-const copiedFoldersArray = ref([])
-const folderToDelete = ref(null)
-const valuesCopiedStatus = ref(null)
 
-const fillFoldersTree = () => {
+const setUpFoldersTree = () => {
   const mainNode = new Node('', '', [], 0, 'folder')
   foldersTree.value = new Tree(mainNode)
   currentFolder.value = foldersTree.value.root
@@ -145,15 +155,16 @@ const findSelectedItem = (idx) => {
 function openCreateFolderPopup() {
   showPopup.value = true
 }
+
 const deleteFolders = () => {
   const timeoutMs = 700
-    deleteFnLink = setTimeout(() => {
+    deleteFnLink.value = setTimeout(() => {
       foldersDeletionState.value = !!!foldersDeletionState.value
     }, timeoutMs)
 }
 
 const deletionDisabled = () => {
-  clearTimeout(deleteFnLink)
+  clearTimeout(deleteFnLink.value)
 }
 
 const keyEvent = event => {
@@ -170,11 +181,11 @@ const closeDeletionPrompt = () => {
 
 const deleteFolder = val => {
   if (val) {
-    currentFolder.value.children = currentFolder.value.children.filter(child => {
-      if (child.name !== folderToDelete.value) {
-        return child
-      }
-    })
+    currentFolder.value.children =
+        currentFolder
+        .value
+        .children
+        .filter(child => child.name !== folderToDelete.value)
   }
   closeDeletionPrompt()
 }
@@ -213,6 +224,7 @@ const showFolderDeletePrompt = fl => {
 
 const openFolder = fl => {
   currentFolder.value = fl
+  selectionEnabled.value = false
 }
 
 const createNewFolder = () => {
@@ -224,7 +236,7 @@ const createNewFolder = () => {
 }
 
 onBeforeMount(() => {
-  fillFoldersTree()
+  setUpFoldersTree()
 })
 </script>
 
