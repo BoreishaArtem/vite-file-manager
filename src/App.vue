@@ -33,10 +33,12 @@
              @mouseup="deletionDisabled"
              :class="{ 'folder-selection': selectionEnabled }"
              :key="Math.random() * idx">
-          <div class="folder-inline"
+          <div class=""
                @click="selectFolders(folder, idx)"
-               :class="{ 'folder-selected-item': selectionEnabled && findSelectedItem(idx) }"
-               v-if="folder.type === 'folder'">
+               :class="{
+                 'folder-selected-item': selectionEnabled && findSelectedItem(idx),
+                 'folder-inline' : folder.type === 'folder',
+                 'file' : folder.type === 'file' }">
 
             <span class="folder-inline-delete-btn"
                   v-if="foldersDeletionState"
@@ -46,7 +48,7 @@
 
           <span>{{ folder.name }}</span>
 
-        </div>selectedFolders
+        </div>
       </div>
     </div>
   </div>
@@ -95,9 +97,15 @@ const actionButtons = ref([
   },
   {
     title: 'Upload files',
-    actionType: 'click',
-    cb: () => {
-      console.log('Files to upload')
+    actionType: 'input',
+    cb: (e) => {
+      const fileList = e.target.files
+      const childrenId = currentFolder.value.children.length + 1
+
+      Object.keys(fileList).forEach(file => {
+        const newNode = new Node(null, fileList[file].name, null, childrenId, 'file')
+        currentFolder.value.children.push(newNode)
+      })
     }
   },
   {
@@ -223,8 +231,10 @@ const showFolderDeletePrompt = fl => {
 }
 
 const openFolder = fl => {
-  currentFolder.value = fl
-  selectionEnabled.value = false
+  if (fl.type === 'folder') {
+    currentFolder.value = fl
+    selectionEnabled.value = false
+  }
 }
 
 const createNewFolder = () => {

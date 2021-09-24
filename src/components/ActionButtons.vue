@@ -5,7 +5,11 @@
       <button @[button.actionType]="button.cb" v-if="button.title.toLowerCase() !== 'upload files'">{{ button.title }}</button>
       <label v-else for="fileSelector">
         Select File
-        <input multiple accept=".jpg, .jpeg, .png" id="fileSelector" type="file">
+        <input multiple
+               accept=".jpg, .jpeg, .png"
+               id="fileSelector"
+               @[button.actionType]="button.cb"
+               type="file">
       </label>
     </li>
   </ul>
