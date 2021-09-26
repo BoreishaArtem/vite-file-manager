@@ -30,11 +30,15 @@
              v-for="(folder, idx) in currentFolder.children"
              @dblclick="openFolder(folder)"
              @mousedown="deleteFolders"
+             draggable="true"
+             @dragstart="startDrag($event, folder)"
+             @drop="onDrop($event, folder.children)"
+             @dragenter.prevent
+             @dragover.prevent
              @mouseup="deletionDisabled"
              :class="{ 'folder-selection': selectionEnabled }"
              :key="Math.random() * idx">
-          <div class=""
-               @click="selectFolders(folder, idx)"
+          <div @click="selectFolders(folder, idx)"
                :class="{
                  'folder-selected-item': selectionEnabled && findSelectedItem(idx),
                  'folder-inline' : folder.type === 'folder',
@@ -175,6 +179,18 @@ const sendImagesToTheServer = async (arr) => {
   } catch (e) {
     console.log(e, 'Error occurred during POST req')
   }
+}
+
+const startDrag = (event, item) => {
+  event.dataTransfer.dropEffect = 'move'
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('item', item)
+}
+
+const onDrop = (event, list) => {
+  const item = event.dataTransfer.getData('item')
+  const element = currentFolder.value.children.find(fl => fl.path === item.path)
+  console.log(element)
 }
 
 const findSelectedItem = (idx) => {
