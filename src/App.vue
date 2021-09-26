@@ -101,11 +101,13 @@ const actionButtons = ref([
     cb: (e) => {
       const fileList = e.target.files
       const childrenId = currentFolder.value.children.length + 1
-
+      const paths = []
       Object.keys(fileList).forEach(file => {
         const newNode = new Node(null, fileList[file].name, null, childrenId, 'file')
+        paths.push(fileList[file].name)
         currentFolder.value.children.push(newNode)
       })
+      sendImagesToTheServer(paths)
     }
   },
   {
@@ -153,6 +155,26 @@ const setUpFoldersTree = () => {
   const mainNode = new Node('', '', [], 0, 'folder')
   foldersTree.value = new Tree(mainNode)
   currentFolder.value = foldersTree.value.root
+}
+
+const sendImagesToTheServer = async (arr) => {
+  const obj = {
+    images: arr
+  }
+  const path = 'http://localhost:5000/images'
+  try {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8'
+      },
+      mode: 'no-cors',
+      body: JSON.stringify(obj)
+    })
+    const res = await response;
+  } catch (e) {
+    console.log(e, 'Error occurred during POST req')
+  }
 }
 
 const findSelectedItem = (idx) => {
